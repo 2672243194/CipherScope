@@ -11,8 +11,10 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    # 未配置 PYPI_API_TOKEN 时跳过发布(避免 tag 推送触发红色失败)
-    if: secrets.PYPI_API_TOKEN != ''
+    # 注意: GitHub Actions 的 if 条件不能直接引用 secrets context,
+    # 须先注入 job 级 env, 再用 env 判断是否跳过(未配置 token 时保持绿色)
+    env:
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -29,6 +31,7 @@ jobs:
       # 方式二: 在 PyPI 配置 trusted publishing(发布者=GitHub, 仓库=2672243194/CipherScope),
       #         则删除下面 with.password 行即可(自动用 id-token)
       - name: 发布到 PyPI
+        if: env.PYPI_API_TOKEN != ''
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}

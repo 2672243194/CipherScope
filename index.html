@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CipherScope — CTF 密码学自动化解题工具</title>
+<meta name="description" content="CTF 密码学自动化解题工具: 输入密文, 自动识别类型、调度攻击、评分判定、输出 flag。">
+<style>
+  :root {
+    --bg: #f7f9fc; --card: #ffffff; --ink: #1f2937; --muted: #6b7280;
+    --brand: #2563eb; --brand-soft: #eff6ff; --line: #e5e7eb; --green: #16a34a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--ink); line-height: 1.6;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 48px 24px 64px; }
+  .hero { text-align: center; padding: 24px 0 8px; }
+  .logo {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 44px; font-weight: 800; letter-spacing: -0.5px;
+  }
+  .logo span { background: linear-gradient(135deg, #2563eb, #7c3aed); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .tagline { color: var(--muted); font-size: 16px; margin: 12px 0 20px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 28px; }
+  .badges img { height: 22px; }
+  .pipeline {
+    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center;
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px 20px; margin: 24px auto 36px; font-size: 14px; color: var(--muted);
+  }
+  .pipeline b { color: var(--ink); background: var(--brand-soft); border: 1px solid #dbeafe; border-radius: 6px; padding: 2px 10px; font-weight: 600; }
+  .arrow { color: var(--brand); font-weight: 700; }
+  h2 { font-size: 20px; margin: 36px 0 14px; padding-left: 10px; border-left: 4px solid var(--brand); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+  .card h3 { font-size: 15px; margin-bottom: 8px; }
+  .card ul { list-style: none; font-size: 13.5px; color: var(--muted); }
+  .card li { padding: 3px 0; }
+  .card li::before { content: "▸ "; color: var(--brand); }
+  code {
+    background: #f3f4f6; border: 1px solid var(--line); border-radius: 6px;
+    padding: 2px 8px; font-size: 13px; font-family: "Cascadia Code", Consolas, monospace;
+  }
+  pre {
+    background: #111827; color: #e5e7eb; border-radius: 10px; padding: 18px 20px;
+    font-size: 13.5px; overflow-x: auto; line-height: 1.7;
+    font-family: "Cascadia Code", Consolas, monospace;
+  }
+  pre .c { color: #9ca3af; }
+  pre .g { color: #4ade80; }
+  .meta { text-align: center; color: var(--muted); font-size: 13px; margin-top: 48px; }
+  .meta a { color: var(--brand); text-decoration: none; }
+  .meta a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="logo"><span>CipherScope</span></div>
+    <div class="tagline">CTF 密码学自动化解题工具 —— 输入密文，自动识别类型、调度攻击、评分判定、输出 flag</div>
+    <div class="badges">
+      <img alt="Release" src="https://img.shields.io/github/v/release/2672243194/CipherScope">
+      <img alt="License" src="https://img.shields.io/github/license/2672243194/CipherScope">
+      <img alt="Tests" src="https://img.shields.io/github/actions/workflow/status/2672243194/CipherScope/tests.yml?label=tests">
+      <img alt="Eval" src="https://img.shields.io/endpoint?url=https%3A%2F%2F2672243194.github.io%2FCipherScope%2Fbadge%2Feval-results.json&style=flat-square">
+      <img alt="Blind" src="https://img.shields.io/endpoint?url=https%3A%2F%2F2672243194.github.io%2FCipherScope%2Fbadge%2Fblind-results.json&style=flat-square">
+      <img alt="PyPI" src="https://img.shields.io/pypi/v/cipherscope">
+    </div>
+    <div class="pipeline">
+      <b>密文</b> <span class="arrow">→</span>
+      <b>识别引擎</b> <span class="arrow">→</span>
+      <b>攻击调度</b> <span class="arrow">→</span>
+      <b>评分判定</b> <span class="arrow">→</span>
+      <b>flag + 求解步骤</b>
+    </div>
+  </div>
+
+  <h2>快速使用</h2>
+  <pre><span class="c"># 全自动求解</span>
+$ cipherscope auto "5L2g5aW977yMZmxhZ3s1Y2Q3YWJjZH0="
+<span class="g">FOUND score=70.0 depth=1</span>
+<span class="g">chain: base64 → plaintext: 你好，flag{5cd7abcd}</span>
+
+<span class="c"># 指定 flag 前缀 / 嵌套加深 / RSA 攻击 / 语料评测</span>
+$ cipherscope auto "..." --flag-prefix NSSCTF{ --max-depth 8
+$ cipherscope rsa -n 90581... -e 65537 -c 43117...
+$ cipherscope evaluate</pre>
+
+  <h2>能力概览</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>编码解码</h3>
+      <ul>
+        <li>base16/32/58/64/85/91</li>
+        <li>ASCII 序列 · URL · 二进制</li>
+        <li>摩斯 · Brainfuck · 培根 · 猪圈</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>古典密码</h3>
+      <ul>
+        <li>凯撒 · ROT47 · Atbash · 仿射</li>
+        <li>维吉尼亚 (IC+Kasiski 自动定钥)</li>
+        <li>栅栏 · 键盘位移 · 云影</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>XOR / 哈希 / RSA</h3>
+      <ul>
+        <li>单字节穷举 · 多字节定钥 · crib</li>
+        <li>MD5/SHA 识别 + 字典爆破</li>
+        <li>12 类 RSA 攻击 (分解/低指数/共模/维纳…)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>评分引擎</h3>
+      <ul>
+        <li>六信号融合 + 三档裁决</li>
+        <li>完整 quadgram (84k 组) + 中文 n-gram</li>
+        <li>编码链优先 DFS 嵌套解码 (套娃)</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>质量数据</h2>
+  <div class="grid">
+    <div class="card"><h3>真题语料</h3><ul><li>100 题综合通过率 <b style="color:var(--green)">100%</b></li><li>classical 31 / codec 29 / combo 21 / hash 8 / xor 11</li></ul></div>
+    <div class="card"><h3>盲测与单测</h3><ul><li>45 盲测用例全 PASS</li><li>75 单元测试全绿</li><li>CI 三重门禁 (单测/语料/盲测)</li></ul></div>
+  </div>
+
+  <div class="meta">
+    开源项目 · <a href="https://github.com/2672243194/CipherScope">GitHub 仓库</a> ·
+    <a href="https://github.com/2672243194/CipherScope/releases">Releases</a> ·
+    <a href="https://github.com/2672243194/CipherScope/blob/main/docs/架构设计文档.md">架构设计文档</a> ·
+    <a href="https://github.com/2672243194/CipherScope/issues">Issues</a><br>
+    MIT License
+  </div>
+</div>
+</body>
+</html>
