@@ -119,7 +119,8 @@ CipherScope Eval — 34/34 (100%)
 - [x] v0.3 Web 可视化版 + 打包脚本
 - [ ] 完整 quadgram 表生成与调参
 - [ ] 中文 n-gram 评分模型
-- [ ] 真题语料扩充至 100 题 + 通过率徽章 CI
+- [x] 通过率徽章 CI（GitHub Actions 自动评测 + 动态徽章）
+- [ ] 真题语料扩充至 100 题
 
 ## License
 
