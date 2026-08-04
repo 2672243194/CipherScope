@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cipherscope"
+version = "0.1.0"
+description = "CTF cryptography auto-solver: detect, attack, score, flag."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "CipherScope Authors" }]
+dependencies = [
+    "typer>=0.12",
+    "rich>=13",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff", "mypy"]
+rsa = ["sympy>=1.12", "gmpy2>=2.1", "pycryptodome>=3.20"]
+web = ["fastapi>=0.110", "uvicorn[standard]>=0.29"]
+build = ["pyinstaller>=6.0"]
+
+[project.scripts]
+cipherscope = "cipherscope.cli:app"
+
+# 第三方插件命名空间: pip 包可通过此 entry point 组注册攻击插件
+[project.entry-points."cipherscope.plugins"]
+
+[tool.setuptools.packages.find]
+include = ["cipherscope*"]
+
+[tool.setuptools.package-data]
+cipherscope = ["data/*.json", "data/*.txt", "data/dictionaries/*.txt", "web/static/*.html"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

@@ -1,0 +1,277 @@
+- id: synthetic-codec-base64-001
+  platform: synthetic
+  category: codec/base64
+  ciphertext: Y29uZ3JhdHVsYXRpb25zLCB0aGUgZmxhZyBpcyBmbGFne2I0c2U2NF8xc19uMHRfZW5jcnlwdGkwbn0=
+  ciphertext_encoding: plain
+  expected_flag: flag{b4se64_1s_n0t_encrypti0n}
+  note: 单层 base64
+- id: synthetic-codec-base64-002
+  platform: synthetic
+  category: codec/base64
+  ciphertext: ZDJWc2JDQmtiMjVsSVNCbWJHRm5lMlF3ZFdKc1pWOXNOSGxsY2w5aU5qUjk=
+  ciphertext_encoding: plain
+  expected_flag: flag{d0uble_l4yer_b64}
+  note: 双层 base64
+- id: synthetic-codec-base64-003
+  platform: synthetic
+  category: codec/base64
+  ciphertext: WlZjNU1VbEhXblprVnpWclNVY3hiRTlwUW0xaVIwWnVaVE5TZVUxWVFuTmFWamxwVGtoT2JGZ3lkekJsVjFaNVl6TXdQUT09
+  ciphertext_encoding: plain
+  expected_flag: flag{tr1ple_b4se_l4yers}
+  note: 三层套娃
+- id: synthetic-codec-hex-004
+  platform: synthetic
+  category: codec/hex
+  ciphertext: 7468652073656372657420697320666c61677b6833785f31735f6a7573745f6e756d626572737d
+  ciphertext_encoding: plain
+  expected_flag: flag{h3x_1s_just_numbers}
+  note: hex 编码
+- id: synthetic-codec-url-005
+  platform: synthetic
+  category: codec/url
+  ciphertext: key%20found%3A%20flag%7Burl_p3rc3nt_enc0ding%7D
+  ciphertext_encoding: plain
+  expected_flag: flag{url_p3rc3nt_enc0ding}
+  note: URL 编码
+- id: synthetic-codec-binary-006
+  platform: synthetic
+  category: codec/binary
+  ciphertext: '011000100110100101101110011000010111001001111001001000000110010001100101011000110110111101100100011001010110010000111010001000000110011001101100011000010110011101111011011000100011000101101110011000010111001001111001010111110110000101110011011000110011000100110001010111110011000101110011010111110110010101100001011100110111100101111101'
+  ciphertext_encoding: plain
+  expected_flag: flag{b1nary_asc11_1s_easy}
+  note: 8bit 二进制 ASCII
+- id: synthetic-codec-morse-007
+  platform: synthetic
+  category: codec/morse
+  ciphertext: '- .... .   ..-. .-.. .- --.   .. ...   ..-. .-.. .- --. -.--.- -- -----
+    .-. ... . ..--.- -.. ----- - ..--.- .- -. -.. ..--.- -.. .- ... .... .-..-.'
+  ciphertext_encoding: plain
+  expected_flag: flag{m0rse_d0t_and_dash}
+  note: 摩斯电码
+- id: synthetic-codec-base32-008
+  platform: synthetic
+  category: codec/base32
+  ciphertext: ORUGKIDBNZZXOZLSHIQGM3DBM55WENDTMUZTEX3BNRYGQNDCMV2H2===
+  ciphertext_encoding: plain
+  expected_flag: flag{b4se32_alph4bet}
+  note: base32
+- id: synthetic-codec-base85-009
+  platform: synthetic
+  category: codec/base85
+  ciphertext: VRK_?X*e|?Wo~0{WMyPJAZBb~XM18eHD6(KV`*t$VRCd|b98xZWqk
+  ciphertext_encoding: plain
+  expected_flag: flag{b85_ascii_art_style}
+  note: base85 (Ascii85)
+- id: synthetic-codec-mixed-010
+  platform: synthetic
+  category: codec/mixed
+  ciphertext: NmU2NTc4NzQyMDZjNjE3OTY1NzIzYTIwNjY2YzYxNjc3YjZkMzE3ODVmNjIzNjM0NWY2ODY1Nzg1ZjYzNjg2MTMxNmU3ZA==
+  ciphertext_encoding: plain
+  expected_flag: flag{m1x_b64_hex_cha1n}
+  note: hex 外套 base64
+- id: synthetic-codec-mixed-011
+  platform: synthetic
+  category: codec/mixed
+  ciphertext: dHdvJTIwbGF5ZXJzJTNBJTIwZmxhZyU3QnVybF90aGVuX2I2NCU3RA==
+  ciphertext_encoding: plain
+  expected_flag: flag{url_then_b64}
+  note: url 外套 base64
+- id: synthetic-codec-mixed-012
+  platform: synthetic
+  category: codec/mixed
+  ciphertext: MDExMDExMTAwMTEwMDEwMTAxMTEwMDExMDExMTAxMDAwMTEwMDEwMTAxMTAwMTAwMDAxMTEwMTAwMDEwMDAwMDAxMTAwMTEwMDExMDExMDAwMTEwMDAwMTAxMTAwMTExMDExMTEwMTEwMTEwMDAxMDAwMTEwMDAxMDExMDExMTAwMTEwMDAwMTAxMTEwMDEwMDExMTEwMDEwMTAxMTExMTAxMTAwMDEwMDAxMTAxMTAwMDExMDEwMDAxMDExMTExMDExMDExMTAwMTEwMDEwMTAxMTEwMDExMDExMTAxMDAwMTExMTEwMQ==
+  ciphertext_encoding: plain
+  expected_flag: flag{b1nary_b64_nest}
+  note: binary 外套 base64
+- id: synthetic-classical-caesar-013
+  platform: synthetic
+  category: classical/caesar
+  ciphertext: wkh vhfxulwb ri d flskhu ghshqgv rq wkh vhfuhfb ri wkh nhb udwkhu wkdq
+    wkh vhfuhfb ri wkh dojrulwkp dqg wklv sulqflsoh jxlghv wkh ghvljq ri prghuq hqfubswlrq
+    vbvwhpv durxqg wkh zruog wkh iodj lv iodj{fdhvdu_vk1iw_wkuhh}
+  ciphertext_encoding: plain
+  expected_flag: flag{caesar_sh1ft_three}
+  note: 凯撒位移 3
+- id: synthetic-classical-caesar-014
+  platform: synthetic
+  category: classical/caesar
+  ciphertext: kyv jvtlizkp fw r tzgyvi uvgveuj fe kyv jvtivtp fw kyv bvp irkyvi kyre
+    kyv jvtivtp fw kyv rcxfizkyd reu kyzj gizetzgcv xlzuvj kyv uvjzxe fw dfuvie vetipgkzfe
+    jpjkvdj rifleu kyv nficu kyv rejnvi zj wcrx{i0k17_rcjf_trvjri}
+  ciphertext_encoding: plain
+  expected_flag: flag{r0t17_also_caesar}
+  note: 凯撒位移 17
+- id: synthetic-classical-atbash-015
+  platform: synthetic
+  category: classical/atbash
+  ciphertext: gsv hvxfirgb lu z xrksvi wvkvmwh lm gsv hvxivxb lu gsv pvb izgsvi gszm
+    gsv hvxivxb lu gsv zotlirgsn zmw gsrh kirmxrkov tfrwvh gsv wvhrtm lu nlwvim vmxibkgrlm
+    hbhgvnh zilfmw gsv dliow nriili trevh uozt{zgyzhs_n1iili_zoks4yvg}
+  ciphertext_encoding: plain
+  expected_flag: flag{atbash_m1rror_alph4bet}
+  note: Atbash
+- id: synthetic-classical-affine-016
+  platform: synthetic
+  category: classical/affine
+  ciphertext: zrc ucsepwzy ah i swfrcp xcfcvxu av zrc ucspcsy ah zrc gcy pizrcp zriv
+    zrc ucspcsy ah zrc ilmapwzrq ivx zrwu fpwvswflc mewxcu zrc xcuwmv ah qaxcpv cvspyfzwav
+    uyuzcqu ipaevx zrc oaplx ihhwvc uiyu hlim{ihh1vc_l1vcip_qif}
+  ciphertext_encoding: plain
+  expected_flag: flag{aff1ne_l1near_map}
+  note: 仿射 a=5,b=8
+- id: synthetic-classical-affine-017
+  platform: synthetic
+  category: classical/affine
+  ciphertext: gaf zfrnshgp xm d rheafs yfefqyz xq gaf zfrsfrp xm gaf vfp sdgafs gadq
+    gaf zfrsfrp xm gaf dctxshgaj dqy gahz eshqrhecf tnhyfz gaf yfzhtq xm jxyfsq fqrspeghxq
+    zpzgfjz dsxnqy gaf bxscy zfrxqy dmmhqf mcdt{dmm1qf_dq0gafs_vfp}
+  ciphertext_encoding: plain
+  expected_flag: flag{aff1ne_an0ther_key}
+  note: 仿射 a=7,b=3
+- id: synthetic-classical-vigenere-018
+  platform: synthetic
+  category: classical/vigenere
+  ciphertext: dlc ciaevgdc mp e astfov botcxhq yr rri qogpogw yj rri ioc pkxfov rrel
+    dlc ciabiai sd dlc kpeyvgdlk krb dlgc tpsrastjo ksshcc xfo hccmex sd wsbovl orabcndmmx
+    wwcxcww ybssxh rri uyvjn xfo wcmypsxw yj y mmnrip ninorbc sl dlc ciabiai sd dlc
+    uiw berrip dlyx xfo wcmvcmc mp xfo ejqspsxfw eln xfsw nbmlmmnvi eembow rri bowgqr
+    mp qmnipx ilmvwzxgyr qiwroqq kvmerb dlc gspvh rri dvee sw dvee{f1kcxipo_tmvc_yvtfk}
+  ciphertext_encoding: plain
+  expected_flag: flag{v1genere_poly_alpha}
+  note: 维吉尼亚 key='key'
+- id: synthetic-classical-vigenere-019
+  platform: synthetic
+  category: classical/vigenere
+  ciphertext: elq grnydwgj sr o ptttse oibsaow ab gsi espciom bq xts xpc dogsid hulr
+    fvr diofrnc at gsi mztzvuhux ezr gsme detrowcwi sivoie hup hqgvrr at zzhqfa proflaxuca
+    dcehrxw mfbfrp hup aafyo xts fpggfvec at n nmbvrc hqdryhe ca elq grnvqql zj fvr
+    vik fnelqf gsez hup wqqepgk cs elq oyrsdwgsq mbq elug ccmzqvapq uhthqg gsi psftkz
+    cs xspsey izqejtfwby wkggpqe oezyzr gsi icewh kch rsf wg qpmu{xlw1ey1_riey1bnemab}
+  ciphertext_encoding: plain
+  expected_flag: flag{kas1sk1_exam1nation}
+  note: 维吉尼亚 key='lemon'
+- id: synthetic-classical-railfence-020
+  platform: synthetic
+  category: classical/railfence
+  ciphertext: tfedf{lc1gh ec ie lgrifnezga_}enhsa4e_z3
+  ciphertext_encoding: plain
+  expected_flag: flag{r4ilfence_z1gzag_3}
+  note: 栅栏 3 栏(含完整flag, 可全自动)
+- id: synthetic-classical-railfence-021
+  platform: synthetic
+  category: classical/railfence
+  ciphertext: zalfv}iptfale1esg t ginf_lzgen{4c_riarrea
+  ciphertext_encoding: plain
+  expected_flag: flag{r4ilfence_f1ve_rails}
+  note: 栅栏 5 栏(含完整flag, 可全自动)
+- id: synthetic-classical-keyboard-022
+  platform: synthetic
+  category: classical/keyboard
+  ciphertext: appl sy upit lrunpstf gash{lrunpstf_t1hjy_dj1gy}
+  ciphertext_encoding: plain
+  expected_flag: flag{keyboard_r1ght_sh1ft}
+  note: 键盘右移一格
+- id: synthetic-xor-single-023
+  platform: synthetic
+  category: xor/single
+  ciphertext: "6*'b1'!0'6b/'11#%'b+1b$.#%9:r0\x1D1s,%.'\x1D ;6q\x1D)';?"
+  ciphertext_encoding: latin1
+  expected_flag: flag{x0r_s1ngle_byt3_key}
+  note: 单字节 XOR 0x42
+- id: synthetic-xor-single-024
+  platform: synthetic
+  category: xor/single
+  ciphertext: "KJGGFM\x03AZ\x03LMF\x03AZWF\x03EOBDX[\x13Q|BM\x13WKFQ|AZWF^"
+  ciphertext_encoding: latin1
+  expected_flag: flag{x0r_an0ther_byte}
+  note: 单字节 XOR 0x23
+- id: synthetic-xor-multi-025
+  platform: synthetic
+  category: xor/multi
+  ciphertext: "\x15\n\x06A\x11\x06\x02\x17\x11\b\x16\x1AA\r\x05A\x03C\x02\v\x13\t\a\
+    \x11A\x06\x06\x11\a\r\x05\x11C\x0E\fC\x15\n\x06A\x11\x06\x02\x10\x06\x02\eC\x0E\
+    \x04C\x15\n\x06A\t\x06\x18B\x11\0\x16\v\x04\x10C\x15\n\x02\x0FB\x17\t\aC\x12\a\
+    \0\x13\a\0\x18B\f\aB\x17\t\aC\0\x0E\x04\x0E\x10\n\x15\n\x0EA\x03\r\x05B\x17\t\v\
+    \x10A\x12\x11\b\f\0\b\x12\x0F\x04B\x04\x14\v\a\x04\x11C\x15\n\x06A\x06\x06\x12\
+    \v\x04\x0FB\f\aB\x0E\x0E\x06\x06\x13\fC\x04\f\0\x13\e\x13\x15\v\f\x0FB\x10\x18\
+    \x11\x17\x04\x0F\x10A\x03\x11\x0E\x17\r\x05B\x17\t\aC\x16\r\x11\r\x06C\x15\n\x06\
+    A\x04\x0F\0\x05C\b\x11C\a\x0E\x02\x06\x19\eQ\x10<\x13\a\x13\x04\x03\x17P\f\x04\
+    >\t\x06\x18\x1F"
+  ciphertext_encoding: latin1
+  expected_flag: flag{x0r_repeat1ng_key}
+  note: 重复密钥 'abc'
+- id: synthetic-xor-multi-026
+  platform: synthetic
+  category: xor/multi
+  ciphertext: "\a[\x06R@\x11\x10F\x11\eG\rS\\\x05RRT\x10Z\x13\x1AV\x06SW\x06\x02V\x1A\
+    \x17@C\x1D]T\a[\x06R@\x11\x10A\x06\x11JT\x1CUC\x06[\x11SX\x06\v\x13\x06\x12G\v\
+    \x17AT\a[\x02\x1C\x13\0\eVC\x01V\x17\x01V\0\v\x13\e\x15\x13\x17\x1AVT\x12_\x04\
+    \x1DA\x1D\a[\x0ERR\x1A\x17\x13\x17\x1AZ\aSC\x11\e]\x17\x1AC\x0F\x17\x13\x13\x06\
+    Z\a\x17@T\a[\x06RW\x11\0Z\x04\x1C\x13\e\x15\x13\x0E\x1DW\x11\x01]C\x17]\x17\x01\
+    J\x13\x06Z\e\x1D\x13\x10\v@\0\x16^\x10RR\x06\x1CF\r\x16\x13\0\eVC\x05\\\x06\x1F\
+    WC\x06[\x11S@\x06\x11F\x06\x1AG\x1AR\\\x12SRC\x11Z\x04\eV\x11RW\x11\x03V\r\x16\
+    @T\x1C]C\x06[\x11S@\x06\x11A\x11\x10JC\x1DUT\a[\x06RX\x11\n\x13\x11\x13G\x1C\x16\
+    AC\x06[\x15\x1D\x13\x17\x1AVT\0V\0\0V\x17\n\x13\f\x14\x13\0\eVC\x13_\x13\x1CA\n\
+    \x06[\x19SR\r\x16\x13\0\eZ\x10RC\x06\x1A]\0\eC\x18\x16\x13\x04\aZ\x10\x16@C\x06\
+    [\x11SW\x06\x01Z\x13\x1D\x13\f\x14\x13\x19\x1CW\x06\0]T\x16]\0\0J\x04\aZ\f\x1C\
+    \x13\a\n@\x17\x17^\aSR\x11\x1DF\x1A\x17\x13\x17\x1AVT\x04\\\x11\x1EWT\0V\0\0V\0\
+    SZ\x10RU\x18\x12T\x18\x1AR\x19\x1E\x02\r\x15l\x10B@\x17\x13]\x17\x16l\x14C]\a\x0E"
+  ciphertext_encoding: latin1
+  expected_flag: flag{hamm1ng_d1stance_w1ns}
+  note: 重复密钥 's3cr3t'
+- id: synthetic-hash-md5-027
+  platform: synthetic
+  category: hash/md5
+  ciphertext: 5ae9b7f211e23aac3df5f2b8f3b8eada
+  ciphertext_encoding: plain
+  expected_flag: crypto
+  note: MD5 字典爆破(flag即明文)
+- id: synthetic-hash-sha1-028
+  platform: synthetic
+  category: hash/sha1
+  ciphertext: 5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8
+  ciphertext_encoding: plain
+  expected_flag: password
+  note: SHA1 字典爆破(flag即明文)
+- id: synthetic-combo-caesar-b64-029
+  platform: synthetic
+  category: combo/caesar-b64
+  ciphertext: Y3FuIGJubGRhcmNoIHhvIGogbHJ5cW5hIG1ueW53bWIgeHcgY3FuIGJubGFubGggeG8gY3FuIHRuaCBhamNxbmEgY3FqdyBjcW4gYm5sYW5saCB4byBjcW4ganVweGFyY3F2IGp3bSBjcXJiIHlhcndscnl1biBwZHJtbmIgY3FuIG1uYnJwdyB4byB2eG1uYXcgbndsYWh5Y3J4dyBiaGJjbnZiIGpheGR3bSBjcW4gZnhhdW0gbHh2a3J3bm0gdWpobmFiIG91anB7bGpuYmphXzF3YjFtbl9rNjR9
+  ciphertext_encoding: plain
+  expected_flag: flag{caesar_1ns1de_b64}
+  note: base64 解后是凯撒
+- id: synthetic-combo-xor-hex-030
+  platform: synthetic
+  category: combo/xor-hex
+  ciphertext: 5952444352531744525445524317515b56504c4f0745680659445e5352685f524f4a
+  ciphertext_encoding: plain
+  expected_flag: flag{x0r_1nside_hex}
+  note: hex 解后是单字节XOR
+- id: synthetic-combo-vigenere-b64-031
+  platform: synthetic
+  category: combo/vigenere-b64
+  ciphertext: ZnZzIGZxcWlldWhtIGJyIG8gcXZidnNlIHBzZHJ6cmcgYnogaHZyIGVzcWVxcW0gYnIgaHZyIHdzbSBlbWh2cmQgaHZueiBodnIgZXNxZXFxbSBiciBodnIgbXp1YmR3aHV5IG9icSBmdndmIGJmd2Fvd2R5cSB1aXZwc2cgZ3RzIHJyZXd1YSBhdCBhYnBzZmEgcWJxZWtkaHZhYiBnbGVoc3plIG9mYmdiciBndHMga2JkenIgZ3RzIGdyb2lmdmZtIGNzIG0gcXdjdHNmIHFxZHNhcGcgY2EgZnZzIGZxcWZyb20gY3MgZnZzIHhxbSBmbmZ2c2UgZnZvYSBmdnMgZnFxZnJvbSBjcyBmdnMgbnh1Y2V1aHZ6IG1iciBndHdnIGNkd2JwdWR6ciBzaXdxcWcgaHVxIHJzZnV1YiBiciBhY3FxZmIgcnpxZmxiaHdieiBnbWZmc2FmIG1mY2h6ciBodXEga2NleHIgYnJlaHNxIHJ6b3QgcnpvdHtod3VfMWFld3JyX242NH0=
+  ciphertext_encoding: plain
+  expected_flag: flag{vig_1nside_b64}
+  note: base64 解后是维吉尼亚
+- id: synthetic-combo-morse-b64-032
+  platform: synthetic
+  category: combo/morse-b64
+  ciphertext: LSAuLi4uIC4gICAuLi0uIC4tLi4gLi0gLS0uICAgLi4gLi4uICAgLi4tLiAuLS4uIC4tIC0tLiAtLi0tLi0gLS0gLS0tLS0gLi0uIC4uLiAuIC4uLS0uLSAuLS0tLSAtLiAuLi4gLi4gLS4uIC4gLi4tLS4tIC0uLi4gLS4uLi4gLi4uLi0gLi0uLi0u
+  ciphertext_encoding: plain
+  expected_flag: flag{m0rse_1nside_b64}
+  note: base64 解后是摩斯
+- id: synthetic-combo-caesar-b32-033
+  platform: synthetic
+  category: combo/caesar-b32
+  ciphertext: PFWWUIDYNJUHU53OPFSCA5DLEBTCA2DOOVWWU5ZANFVHK2TTNF4CA5DTEB4W22RAPBVGQ53KNBSCA5DLEB4W22RAOBVGIIDXMZ4W22TXEB4W2ZTTEB4W22RAPBVGQ53KNBSCA5DLEB4W22RAMZYWY5DXNZ4W24RAMZZWSIDZNVXHQIDVO5XHG2DOOVYWUIDMPJXGS2TYEB4W22RANFVHQ3TMOMQHI2ZAOJ2GS2TXOMQGU43IO5SHK6LOORZSA6DEPB4WU4TYEBTHO5D2ONUSA6LNNIQGE5DXOFUSAZ3GPBVDGMRANBTGU6DGO4QGW4LGNR5WQZTKPBTHOXZRON4G42LKL5TTGMT5
+  ciphertext_encoding: plain
+  expected_flag: flag{caesar_1nside_b32}
+  note: base32 解后是凯撒
+- id: synthetic-combo-xor-b64-034
+  platform: synthetic
+  category: combo/xor-b64
+  ciphertext: OTQsMCcwMXUtOid1Mzk0Mi4tZScKZDsmPDEwCjdjYSg=
+  ciphertext_encoding: plain
+  expected_flag: flag{x0r_1nside_b64}
+  note: base64 解后是单字节XOR

@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CipherScope — CTF 密码学自动化解题</title>
+<style>
+  :root {
+    --bg0:#f4f6fb; --card:#ffffff; --card-solid:#ffffff;
+    --fg:#1e293b; --muted:#64748b;
+    --accent:#2563eb; --accent2:#0891b2; --violet:#7c3aed;
+    --ok:#16a34a; --danger:#dc2626; --warn:#d97706;
+    --border:#e2e8f0;
+    --radius:14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
+    background:
+      radial-gradient(1100px 520px at 50% -12%, rgba(37,99,235,.09), transparent 62%),
+      radial-gradient(800px 460px at 88% 112%, rgba(124,58,237,.05), transparent 60%),
+      radial-gradient(700px 420px at 6% 108%, rgba(8,145,178,.05), transparent 55%),
+      var(--bg0);
+    color: var(--fg); padding: 40px 16px 64px; min-height: 100vh;
+  }
+  /* 密码矩阵网格背景 */
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image:
+      linear-gradient(rgba(37,99,235,.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(37,99,235,.045) 1px, transparent 1px);
+    background-size: 42px 42px;
+    -webkit-mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, #000 20%, transparent 75%);
+    mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, #000 20%, transparent 75%);
+  }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  .wrap { max-width: 880px; margin: 0 auto; position: relative; z-index: 1; }
+  header { text-align: center; margin-bottom: 26px; }
+  .brand { display: flex; align-items: center; justify-content: center; gap: 14px; }
+  .brand-icon {
+    width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center;
+    color: var(--accent);
+    background: linear-gradient(145deg, #eff6ff, #ecfeff);
+    border: 1px solid rgba(37,99,235,.25);
+    box-shadow: 0 4px 16px rgba(37,99,235,.14);
+  }
+  .brand-icon svg { width: 26px; height: 26px; }
+  header h1 {
+    font-size: 42px; font-weight: 800; letter-spacing: 1px; color: #0f172a;
+  }
+  header h1 span {
+    background: linear-gradient(135deg, #2563eb, #06b6d4);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 10px rgba(37,99,235,.35));
+  }
+  header p { color: var(--muted); margin-top: 10px; font-size: 14px; letter-spacing: 1.5px; }
+  .headline-bar {
+    width: 260px; height: 2px; margin: 18px auto 0;
+    background: linear-gradient(90deg, transparent, rgba(37,99,235,.55), rgba(6,182,212,.55), transparent);
+    border-radius: 2px;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: 0 6px 24px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.04);
+  }
+  textarea {
+    width: 100%; min-height: 116px; background: #f8fafc;
+    border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;
+    color: var(--fg); caret-color: var(--accent);
+    font-family: "Cascadia Code", Consolas, "JetBrains Mono", ui-monospace, monospace;
+    font-size: 13px; line-height: 1.55; resize: vertical; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  textarea::placeholder { color: #94a3b8; }
+  .row { display: flex; gap: 12px; margin-top: 12px; align-items: center; flex-wrap: wrap; }
+  input[type=number], input[type=text] {
+    background: #fff; border: 1px solid var(--border); color: var(--fg);
+    border-radius: 9px; padding: 9px 12px; font-size: 13px; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input[type=number]:focus, input[type=text]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+  button {
+    background: linear-gradient(135deg, #2563eb, #06b6d4); color: #fff; border: 0;
+    border-radius: 9px; padding: 10px 22px; font-size: 14px; font-weight: 700; cursor: pointer;
+    box-shadow: 0 2px 10px rgba(37,99,235,.22);
+    transition: transform .12s, box-shadow .18s;
+  }
+  button:hover { box-shadow: 0 4px 18px rgba(37,99,235,.35); transform: translateY(-1px); }
+  button:active { transform: translateY(0); }
+  button:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; transform: none; }
+  .hint { color: var(--muted); font-size: 12px; margin-left: 4px; }
+  #result { margin-top: 22px; }
+  .badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 12px;
+           font-weight: 700; letter-spacing: 1px; }
+  .badge.ok { background: #dcfce7; color: var(--ok); border: 1px solid #86efac; }
+  .badge.fail { background: #fee2e2; color: var(--danger); border: 1px solid #fca5a5; }
+  .chain { margin: 16px 0 12px; font-family: "Cascadia Code", Consolas, monospace; font-size: 13px;
+           color: #0891b2; word-break: break-all; line-height: 1.7; }
+  pre {
+    background: #f8fafc; border: 1px solid var(--border); color: #334155;
+    border-radius: 10px; padding: 14px 16px;
+    font-family: "Cascadia Code", Consolas, "JetBrains Mono", ui-monospace, monospace;
+    font-size: 13px; line-height: 1.6;
+    white-space: pre-wrap; word-break: break-all;
+  }
+  .meta { color: var(--muted); font-size: 12px; margin-top: 10px; }
+  .spinner { display: none; margin-top: 16px; color: var(--accent); font-size: 13px; letter-spacing: 1px; }
+  .spinner::after {
+    content: ""; display: inline-block; width: 12px; height: 12px; margin-left: 8px;
+    border: 2px solid rgba(37,99,235,.2); border-top-color: var(--accent);
+    border-radius: 50%; vertical-align: -2px; animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error { color: var(--danger); margin-top: 12px; font-size: 13px; }
+  .steps { margin: 16px 0; border-top: 1px dashed var(--border); padding-top: 14px; }
+  .steps h4 { font-size: 13px; margin-bottom: 10px; color: var(--muted); letter-spacing: 1px; }
+  .step { display: flex; gap: 12px; padding: 7px 0; font-size: 13px; align-items: baseline; }
+  .stage { flex: 0 0 44px; font-weight: 700; letter-spacing: 1px; }
+  .stage.rec { color: var(--accent); } .stage.atk { color: var(--violet); } .stage.ver { color: var(--ok); }
+  .step-desc { flex: 1; }
+  .step-detail { color: var(--muted); font-size: 12px; }
+  .alt-btn, .copy-btn {
+    margin-top: 12px; background: transparent; color: var(--accent);
+    border: 1px solid rgba(37,99,235,.35); font-weight: 500;
+    box-shadow: none;
+  }
+  .alt-btn:hover, .copy-btn:hover { background: #eff6ff; box-shadow: 0 0 12px rgba(37,99,235,.15); }
+  .copy-btn { padding: 6px 14px; font-size: 12px; margin-top: 10px; }
+  .alt-list { margin-top: 12px; }
+  .alt-item { border: 1px solid var(--border); border-radius: 10px; padding: 12px;
+              margin-bottom: 10px; background: #f8fafc; }
+  .alt-item .head { font-family: "Cascadia Code", Consolas, monospace; font-size: 12px; color: var(--muted); }
+  /* ---- tab 导航 ---- */
+  .tabs {
+    display: flex; gap: 4px; margin-bottom: 18px;
+    background: #e9edf4; border: 1px solid var(--border);
+    border-radius: 12px; padding: 5px;
+  }
+  .tab {
+    flex: 1; text-align: center; padding: 10px 0; border-radius: 9px; cursor: pointer;
+    font-size: 14px; color: var(--muted); border: 0; background: transparent; font-weight: 500;
+    transition: color .15s, background .15s, box-shadow .15s;
+  }
+  .tab:hover { color: var(--fg); }
+  .tab.active {
+    background: #fff; color: var(--accent); font-weight: 700;
+    box-shadow: 0 1px 4px rgba(15,23,42,.12), inset 0 0 0 1px rgba(37,99,235,.15);
+  }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  /* ---- 手动工具 ---- */
+  select {
+    background: #fff; border: 1px solid var(--border); color: var(--fg);
+    border-radius: 9px; padding: 9px 12px; font-size: 13px; min-width: 230px; outline: none;
+  }
+  select option, select optgroup { background: #fff; color: var(--fg); }
+  .tool-row { display: flex; gap: 12px; margin-top: 12px; align-items: center; flex-wrap: wrap; }
+  .dir-btn {
+    background: transparent; color: var(--accent); border: 1px solid rgba(37,99,235,.35);
+    padding: 8px 16px; font-weight: 500; box-shadow: none;
+  }
+  .dir-btn.active {
+    background: linear-gradient(135deg, #2563eb, #06b6d4); color: #fff;
+    border-color: transparent; font-weight: 700;
+  }
+  .dir-btn:disabled { opacity: .45; }
+  .tool-out { margin-top: 16px; }
+  .tool-out .meta { margin-bottom: 6px; }
+  .binary-note { color: var(--warn); font-size: 12px; margin-top: 8px; }
+  .rsa-param {
+    width: 132px; background: #fff; border: 1px solid var(--border); color: var(--fg);
+    border-radius: 9px; padding: 9px 11px; font-size: 13px; outline: none;
+    font-family: "Cascadia Code", Consolas, monospace;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .rsa-param:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+  .rsa-result { border: 1px solid var(--border); border-radius: 10px; padding: 12px;
+                margin-bottom: 10px; background: #f8fafc; }
+  .rsa-result .atk { font-weight: 700; color: #0891b2; font-size: 13px; margin-bottom: 8px; letter-spacing: .5px; }
+  .rsa-result pre { margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+             stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="6.5"/>
+          <circle cx="11" cy="11" r="2.6" stroke-dasharray="3.2 2.2"/>
+          <line x1="15.8" y1="15.8" x2="20" y2="20"/>
+          <path d="M4.5 11a6.5 6.5 0 0 1 6.5-6.5" stroke-dasharray="2 2.4"/>
+        </svg>
+      </div>
+      <h1>Cipher<span>Scope</span></h1>
+    </div>
+    <p>密码透镜 · CTF 自动求解 / 编码解码工具箱</p>
+    <div class="headline-bar"></div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-solve" onclick="switchTab('solve')">自动求解</button>
+    <button class="tab" id="tab-tools" onclick="switchTab('tools')">手动工具</button>
+  </div>
+
+  <!-- ======================= 自动求解面板 ======================= -->
+  <div class="panel active" id="panel-solve">
+    <div class="card">
+      <textarea id="input" placeholder="粘贴密文，如：5L2g5aW977yMZmxhZ3s1Y2Q3YWJjZH0="></textarea>
+      <div class="row">
+        <input type="number" id="depth" value="10" min="1" max="10" title="嵌套搜索最大层数">
+        <span class="hint">嵌套层数</span>
+        <input type="text" id="flagprefix" placeholder="如 flag,ctf" style="width:140px"
+               title="指定 flag 前缀(可多个, 逗号分隔, 如 flag,ctf,flag{)——指定后只认此前缀, 避免被 ctf{ 等其他前缀抢先停下">
+        <span class="hint">flag前缀，逗号分隔多个，留空=自动识别</span>
+        <button id="go">开始求解</button>
+      </div>
+      <div class="spinner" id="spinner">求解中，可能需要几秒…</div>
+      <div class="error" id="error"></div>
+    </div>
+    <div id="result"></div>
+  </div>
+
+  <!-- ======================= 手动工具面板 ======================= -->
+  <div class="panel" id="panel-tools">
+    <div class="card">
+      <textarea id="t-input" placeholder="输入要处理的内容"></textarea>
+      <div class="tool-row">
+        <select id="t-tool" title="选择编码/解码操作">
+          <option value="">加载中…</option>
+        </select>
+        <button class="dir-btn active" id="t-dec" onclick="setDir('decode')">解码</button>
+        <button class="dir-btn" id="t-enc" onclick="setDir('encode')">编码</button>
+        <button id="t-go">执行</button>
+      </div>
+      <!-- RSA 求解器: 多参数表单 (选中 rsa-solver 时显示) -->
+      <div id="rsa-form" style="display:none; margin-top:14px">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:8px">
+          RSA 表单式求解: 按题目给的参数填写, 没有的不填, 自动匹配题型算出能算的值。
+          <br>题型: p,q,e→d · p,q,e,c→m · dp,n,e,c→m · n,e,c(分解/低指数/维纳) · n,e,c+e2,c2(共模) · e,ns,cs(广播)
+        </div>
+        <div class="tool-row" style="margin-top:8px">
+          <input type="text" id="r-p" placeholder="p" class="rsa-param">
+          <input type="text" id="r-q" placeholder="q" class="rsa-param">
+          <input type="text" id="r-e" placeholder="e" class="rsa-param">
+          <input type="text" id="r-c" placeholder="c" class="rsa-param">
+          <input type="text" id="r-n" placeholder="n" class="rsa-param">
+        </div>
+        <div class="tool-row" style="margin-top:8px">
+          <input type="text" id="r-dp" placeholder="dp" class="rsa-param">
+          <input type="text" id="r-e2" placeholder="e2" class="rsa-param">
+          <input type="text" id="r-c2" placeholder="c2" class="rsa-param">
+          <input type="text" id="r-ns" placeholder="ns(n1,n2,n3)" class="rsa-param">
+          <input type="text" id="r-cs" placeholder="cs(c1,c2,c3)" class="rsa-param">
+          <button id="r-go">RSA 求解</button>
+        </div>
+      </div>
+      <div class="error" id="t-error"></div>
+      <div class="tool-out" id="t-out"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+/* ==================== tab 切换 ==================== */
+function switchTab(name) {
+  ["solve", "tools"].forEach(n => {
+    $("tab-" + n).classList.toggle("active", n === name);
+    $("panel-" + n).classList.toggle("active", n === name);
+  });
+}
+
+/* ==================== 手动工具 ==================== */
+let _tools = [];       // 工具清单 {key,name,support}
+let _tDir = "decode";  // 当前方向
+
+function setDir(d) {
+  // 单向工具强制正确方向; 双向工具跟随点击
+  const support = (_tools.find(t => t.key === $("t-tool").value) || {}).support;
+  if (support === "encode") d = "encode";
+  else if (support === "decode") d = "decode";
+  _tDir = d;
+  $("t-dec").classList.toggle("active", d === "decode");
+  $("t-enc").classList.toggle("active", d === "encode");
+  $("t-dec").disabled = support === "encode";
+  $("t-enc").disabled = support === "decode";
+}
+
+async function loadTools() {
+  try {
+    const resp = await fetch("/api/tools");
+    _tools = await resp.json();
+    const sel = $("t-tool");
+    // 按 category 分组渲染 (optgroup), RSA 求解器归入 RSA 组
+    const groups = {};
+    _tools.forEach(t => { (groups[t.category || "其他"] = groups[t.category || "其他"] || []).push(t); });
+    const order = ["Base 编码", "文本编码", "古典密码", "进制转换", "压缩与结构化", "哈希", "RSA", "其他"];
+    const ordered = order.filter(g => groups[g]).concat(order.filter(g => !groups[g]).filter(g => groups[g]));
+    sel.innerHTML = `<option value="">— 选择操作 —</option>` +
+      ordered.map(g => `
+        <optgroup label="${escapeHtml(g)}">
+          ${groups[g].map(t => `<option value="${t.key}">${escapeHtml(t.name)}</option>`).join("")}
+        </optgroup>`).join("") +
+      `<optgroup label="RSA"><option value="rsa-solver">RSA 求解器（多参数表单）</option></optgroup>`;
+    sel.onchange = () => {
+      if (sel.value === "rsa-solver") {
+        $("rsa-form").style.display = "block";
+        $("t-input").style.display = "none";
+        $("t-dec").style.display = "none";
+        $("t-enc").style.display = "none";
+        $("t-go").style.display = "none";
+      } else {
+        $("rsa-form").style.display = "none";
+        $("t-input").style.display = "";
+        $("t-dec").style.display = "";
+        $("t-enc").style.display = "";
+        $("t-go").style.display = "";
+        setDir("decode");
+      }
+    };
+    setDir("decode");
+  } catch (e) {
+    $("t-tool").innerHTML = `<option value="">工具加载失败</option>`;
+  }
+}
+
+/* RSA 表单式求解 */
+$("r-go").addEventListener("click", async () => {
+  // 关键: 大整数(>2^53)不能 parseInt(精度丢失), 必须原样字符串传递,
+  // 后端 pydantic int 字段会自动精确转换
+  const str = v => { const s = v.trim(); return s ? s : null; };
+  const body = {
+    p: str($("r-p").value), q: str($("r-q").value), e: str($("r-e").value),
+    c: str($("r-c").value), n: str($("r-n").value), dp: str($("r-dp").value),
+    e2: str($("r-e2").value), c2: str($("r-c2").value),
+    ns: $("r-ns").value.trim() || null, cs: $("r-cs").value.trim() || null,
+  };
+  $("t-error").textContent = "";
+  $("t-out").innerHTML = `<div class="meta">RSA 求解中…</div>`;
+  try {
+    const resp = await fetch("/api/rsa", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await resp.json();
+    // 兼容两种错误结构: {error} 与 FastAPI 的 {detail} (422 校验错误 detail 是数组)
+    if (data.error || data.detail) {
+      const msg = data.error || (Array.isArray(data.detail)
+        ? data.detail.map(e => e.msg || JSON.stringify(e)).join("; ")
+        : String(data.detail));
+      $("t-error").textContent = msg; $("t-out").innerHTML = ""; return;
+    }
+    const results = data.results || [];
+    if (!results.length) { $("t-error").textContent = "没有返回结果"; $("t-out").innerHTML = ""; return; }
+    $("t-out").innerHTML = results.map(r => `
+      <div class="rsa-result">
+        <div class="atk">${escapeHtml(r.attack)}</div>
+        ${(r.lines || []).map(l => `<pre style="padding:8px">${escapeHtml(l)}</pre>`).join("")}
+      </div>`).join("") +
+      `<button class="copy-btn" onclick="copyRsaResults()">复制全部结果</button>`;
+    window._rsaResults = results;
+  } catch (e) {
+    $("t-error").textContent = "请求失败: " + e.message;
+  }
+});
+
+function copyRsaResults() {
+  if (!window._rsaResults) return;
+  const text = window._rsaResults.map(r => `${r.attack}\n${(r.lines || []).join("\n")}`).join("\n\n");
+  copyText(text);
+}
+
+$("t-go").addEventListener("click", async () => {
+  const text = $("t-input").value;
+  const tool = $("t-tool").value;
+  $("t-error").textContent = "";
+  if (!text) { $("t-error").textContent = "请先输入内容"; return; }
+  if (!tool) { $("t-error").textContent = "请选择操作"; return; }
+  $("t-out").innerHTML = `<div class="meta">执行中…</div>`;
+  try {
+    const resp = await fetch("/api/tool", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tool, text, direction: _tDir }),
+    });
+    const data = await resp.json();
+    if (data.error || data.detail) {
+      const msg = data.error || (Array.isArray(data.detail)
+        ? data.detail.map(e => e.msg || JSON.stringify(e)).join("; ")
+        : String(data.detail));
+      $("t-error").textContent = msg; $("t-out").innerHTML = ""; return;
+    }
+    const output = data.output == null ? "" : String(data.output);
+    const binNote = data.binary ? `<div class="binary-note">⚠ 输出含不可打印字节(二进制数据)，文本为近似显示</div>` : "";
+    $("t-out").innerHTML = `
+      <div class="meta">${escapeHtml(data.name || "")} · ${_tDir === "encode" ? "编码" : "解码"}</div>
+      <pre id="t-out-pre">${escapeHtml(output)}</pre>
+      ${binNote}
+      <button class="copy-btn" onclick="copyText(document.getElementById('t-out-pre').textContent)">复制结果</button>`;
+  } catch (e) {
+    $("t-error").textContent = "请求失败: " + e.message;
+  }
+});
+
+/* ==================== 复制 ==================== */
+async function copyText(s) {
+  try {
+    await navigator.clipboard.writeText(s);
+  } catch (e) {
+    const ta = document.createElement("textarea");
+    ta.value = s; document.body.appendChild(ta); ta.select();
+    document.execCommand("copy"); ta.remove();
+  }
+}
+
+loadTools();
+
+$("go").addEventListener("click", async () => {
+  const text = $("input").value.trim();
+  if (!text) { $("error").textContent = "请先输入密文"; return; }
+  $("error").textContent = "";
+  $("result").innerHTML = "";
+  $("spinner").style.display = "block";
+  $("go").disabled = true;
+  // Base64 图片直接预览 (纯前端能力, 无需后端): data:image/xxx;base64,...
+  if (/^data:image\/[a-z0-9.+-]+;base64,/i.test(text)) {
+    $("spinner").style.display = "none";
+    $("go").disabled = false;
+    $("result").innerHTML = `
+      <div class="card">
+        <span class="badge ok">IMAGE</span>
+        <span class="meta">Base64 图片已直接解码预览（右键可另存为）</span>
+        <div style="margin-top:10px"><img src="${escapeHtml(text)}" style="max-width:100%;border-radius:8px;border:1px solid var(--border)"></div>
+      </div>`;
+    return;
+  }
+  try {
+    const resp = await fetch("/api/solve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text,
+        max_depth: parseInt($("depth").value, 10) || 10,
+        prefer: null,   // 默认自动识别, 不再提供手动指定
+        flag_prefix: $("flagprefix").value.trim() || null,
+        exclude: window._exclude || [],
+      }),
+    });
+    const data = await resp.json();
+    $("spinner").style.display = "none";
+    if (data.error) { $("error").textContent = data.error; return; }
+    const ok = data.found;
+    const stepsHtml = ok && data.steps && data.steps.length ? `
+      <div class="steps">
+        <h4>求解步骤（可复制用于 writeup）</h4>
+        ${data.steps.map(s => `
+          <div class="step">
+            <span class="stage ${s.stage === "识别" ? "rec" : s.stage === "攻击" ? "atk" : "ver"}">${s.stage}</span>
+            <span class="step-desc">${escapeHtml(s.description)}
+              ${s.detail ? `<span class="step-detail">（${escapeHtml(s.detail)}）</span>` : ""}</span>
+          </div>`).join("")}
+      </div>` : "";
+    const altsHtml = ok && data.alternatives && data.alternatives.length ? `
+      <button class="alt-btn" onclick="this.nextElementSibling.style.display='block';this.style.display='none'">
+        查看其他可能答案（${data.alternatives.length} 个）
+      </button>
+      <div class="alt-list" style="display:none">
+        ${data.alternatives.map(a => `
+          <div class="alt-item">
+            <div class="head">${escapeHtml(a.method)} · score ${a.score}</div>
+            <pre style="margin-top:6px">${escapeHtml(a.plaintext)}</pre>
+          </div>`).join("")}
+      </div>` : "";
+    $("result").innerHTML = `
+      <div class="card">
+        <span class="badge ${ok ? "ok" : "fail"}">${ok ? "FOUND" : "NOT FOUND"}</span>
+        ${ok ? `<span class="meta">score ${data.score} · depth ${data.depth} · ${data.attempts} 次评分</span>`
+              : `<span class="meta">已尝试 ${data.attempts} 次评分，建议加深层数或换题</span>`}
+        ${ok ? `<div class="chain">chain: ${data.chain.join(" → ")}<br>method: ${data.method}</div>
+                <pre>${escapeHtml(data.plaintext)}</pre>
+                <button class="alt-btn" onclick="copyText('${escapeHtml(data.plaintext)}', this)">复制答案</button>
+                <button class="alt-btn" onclick="rejectAnswer()">❌ 答案不对，继续寻找</button>
+                ${stepsHtml}
+                ${altsHtml}
+                <button class="alt-btn" onclick="copyWp()">复制 writeup 文本</button>` : ""}
+      </div>`;
+    window._lastData = data;
+    window._lastInput = text;
+  } catch (e) {
+    $("spinner").style.display = "none";
+    $("error").textContent = "请求失败: " + e.message;
+  } finally {
+    $("go").disabled = false;
+  }
+});
+function escapeHtml(s) {
+  // 防御: 对象/数组传入时序列化为可读 JSON, 避免出现 "[object Object]"
+  if (s === null || s === undefined) return "";
+  if (typeof s !== "string") {
+    try { s = JSON.stringify(s); } catch (e) { s = String(s); }
+  }
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function copyText(txt, btn) {
+  navigator.clipboard.writeText(txt).then(() => {
+    const old = btn.textContent; btn.textContent = "已复制 ✓";
+    setTimeout(() => btn.textContent = old, 1500);
+  }, () => alert("复制失败，请手动复制"));
+}
+function rejectAnswer() {
+  // 屏蔽当前答案, 继续寻找下一个可能解
+  const d = window._lastData;
+  if (!d || !d.found || !d.plaintext) return;
+  window._exclude = window._exclude || [];
+  if (!window._exclude.includes(d.plaintext)) window._exclude.push(d.plaintext);
+  const btn = $("go");
+  btn.click();  // 重新求解
+  // 重新求解成功后提示已屏蔽个数
+  setTimeout(() => {
+    const badge = document.querySelector("#result .badge");
+    if (badge) badge.insertAdjacentText("afterend", ` <span class="meta">已屏蔽 ${window._exclude.length} 个错误答案</span>`);
+  }, 800);
+}
+function copyWp() {
+  const d = window._lastData, inp = window._lastInput || "";
+  if (!d || !d.found) return;
+  const lines = [
+    "# CipherScope 解题记录",
+    "",
+    "## 题目密文",
+    "```",
+    inp,
+    "```",
+    "",
+    "## 求解过程",
+    ...(d.steps || []).map(s => `- **[${s.stage}]** ${s.description}${s.detail ? `（${s.detail}）` : ""}`),
+    "",
+    "## 结论",
+    `- 方法：${d.method}`,
+    `- chain：${(d.chain || []).join(" → ")}`,
+    `- score：${d.score} · depth：${d.depth}`,
+    "",
+    "## Flag",
+    "```",
+    d.plaintext,
+    "```",
+  ];
+  navigator.clipboard.writeText(lines.join("\n")).then(
+    () => { const btn = event.target; const old = btn.textContent; btn.textContent = "已复制 ✓"; setTimeout(() => btn.textContent = old, 1500); },
+    () => alert("复制失败，请手动复制")
+  );
+}
+</script>
+</body>
+</html>

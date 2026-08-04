@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# 测试缓存
+.pytest_cache/
+
+# 本地启动脚本(含本机 Python 绝对路径, 不上传)
+启动Web版.bat
+
+# IDE / 系统
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
