@@ -1,0 +1,32 @@
+name: pypi-publish
+
+# 推送 v* tag 时自动构建并发布到 PyPI
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  id-token: write  # 若启用 trusted publishing 则无需 token
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 构建 sdist + wheel
+        run: |
+          pip install -q build
+          python -m build
+
+      # 方式一(默认): 在仓库 Settings -> Secrets 添加 PYPI_API_TOKEN
+      # 方式二: 在 PyPI 配置 trusted publishing(发布者=GitHub, 仓库=2672243194/CipherScope),
+      #         则删除下面 with.password 行即可(自动用 id-token)
+      - name: 发布到 PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}

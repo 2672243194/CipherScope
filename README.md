@@ -3,9 +3,12 @@
 > CTF 密码学自动化解题工具 —— 输入密文，自动识别类型、调度攻击、评分判定、输出 flag。
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)]()
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)]()
+[![License](https://img.shields.io/github/license/2672243194/CipherScope)]()
+[![Release](https://img.shields.io/github/v/release/2672243194/CipherScope)]()
+[![Tests](https://img.shields.io/github/actions/workflow/status/2672243194/CipherScope/tests.yml?label=tests)]()
 [![Eval](https://img.shields.io/endpoint?url=https%3A%2F%2F2672243194.github.io%2FCipherScope%2Fbadge%2Feval-results.json&style=flat-square)]()
 [![Blind Tests](https://img.shields.io/endpoint?url=https%3A%2F%2F2672243194.github.io%2FCipherScope%2Fbadge%2Fblind-results.json&style=flat-square)]()
+[![PyPI](https://img.shields.io/pypi/v/cipherscope)]()
 
 ## 它解决什么问题
 

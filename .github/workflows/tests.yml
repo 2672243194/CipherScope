@@ -1,0 +1,46 @@
+name: tests
+
+# 推送 main 与 PR 自动跑 75 单测 + 100 题语料门禁 + 45 盲测门禁
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 安装依赖
+        run: |
+          pip install -q -e ".[dev,rsa,web]" pyyaml
+
+      - name: 单元测试
+        run: pytest -q
+
+      - name: 语料评测门禁 (100 题须全通过)
+        run: |
+          python - <<'EOF'
+          from cipherscope.core.evaluate import run_eval
+          passed, total = run_eval()
+          assert passed == total, f"语料评测 {passed}/{total} 未全通过"
+          print(f"语料评测 {passed}/{total} 全部通过")
+          EOF
+
+      - name: 盲测门禁 (45 用例须全 PASS)
+        run: |
+          python tools/blind_test.py > /tmp/blind.log
+          cat /tmp/blind.log
+          if grep -q "FAIL" /tmp/blind.log; then
+            echo "盲测存在 FAIL 用例"
+            exit 1
+          fi

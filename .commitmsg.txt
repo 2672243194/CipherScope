@@ -1,7 +1,0 @@
-feat: 路线图三项全部完成 - quadgram 表/中文 n-gram/100 题语料
-
-- 评分引擎: 完整 quadgram 表(84k 组/892万样本) 长英文 ngram 从 0 提升到 16 分
-- 评分引擎: 中文 n-gram 字级二元组模型(20万组) 长中文句自动认可, 乱码拒绝
-- 语料: 34->100 题, 综合通过率 100% (classical 31/codec 29/combo 21/hash 8/xor 11)
-- 修复 3 个 bug: xor-crib 假解放行漏洞 / 56位hex误判哈希 / xor-multi 特殊字符密钥恢复
-- 盲测 43->45, 75 单测全绿, README 路线图全部勾选
