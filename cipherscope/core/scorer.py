@@ -210,6 +210,9 @@ _NGRAM_PARAMS = {4: (-3.3, -6.5, -8.0), 3: (-2.2, -6.5, -7.0)}
 # 优雅降级的完整含义: 信号权重必须反映信号质量。
 _SIGNAL_WEIGHTS = {4: (25.0, 10.0, 15.0, 10.0), 3: (8.0, 10.0, 25.0, 15.0)}
 _CHI2_BEST, _CHI2_WORST = 0.02, 0.5    # 卡方归一化区间
+# 中文 n-gram 字级二元组参数: 相邻字对 log10 概率, 高频对约 -2.4, 生僻对约 -6
+_CHINESE_BEST, _CHINESE_WORST = -3.0, -6.5
+_CHINESE_WORD_FLOOR = -9.0   # 未收录字对的惩罚 log 概率
 
 SUCCESS_THRESHOLD = 70.0
 PROMISING_THRESHOLD = 55.0      # 无 flag 时 base 折算分阈值
@@ -245,6 +248,16 @@ class ScoringEngine:
     ) -> None:
         self.flag_prefixes = tuple(p.lower() for p in flag_prefixes)
         self._ngrams, self._ngram_n = self._load_ngrams(quadgrams_path)
+        # 中文 n-gram 模型 (路线图项): 字级二元组频率表随包分发, 零运行时依赖
+        self._chinese_bigrams = self._load_chinese_bigrams()
+
+    @staticmethod
+    def _load_chinese_bigrams() -> dict[str, float]:
+        p = Path(__file__).resolve().parent.parent / "data" / "chinese_bigrams.json"
+        if p.is_file():
+            with p.open("r", encoding="utf-8") as f:
+                return json.load(f)
+        return {}
 
     # -------------------------------------------------- 信号 1: flag 正则
     def _flag_signal(self, text_lower: str) -> tuple[bool, str]:
@@ -329,8 +342,42 @@ class ScoringEngine:
         cjk = sum("一" <= ch <= "鿿" for ch in text)
         return cjk / len(text)
 
+    # --------------------------------- 中文 n-gram 字级二元组模型 (路线图项)
+    def _chinese_ngram_fitness(self, text: str) -> float:
+        """中文文本的字级二元组适应度, 归一化到 0~25。
+        词库只统计词内字对, 中文句子跨词边界对天然缺失, 因此以
+        **命中率**为唯一信号: 正常中文句 40~70%, 生僻字乱码 <20%。
+        零运行时依赖。"""
+        if not self._chinese_bigrams:
+            return 0.0
+        chars = [c for c in text if "\u4e00" <= c <= "\u9fff"]
+        if len(chars) < 4:
+            return 0.0   # 样本太少, 统计不可信
+        grams = [chars[i] + chars[i + 1] for i in range(len(chars) - 1)]
+        if not grams:
+            return 0.0
+        hit = sum(1 for g in grams if g in self._chinese_bigrams)
+        rate = hit / len(grams)
+        if rate < 0.2:
+            return 0.0   # 命中率过低直接判 0(生僻字乱码)
+        return rate * 25.0
+
     @classmethod
-    def _short_cjk_success(cls, data: bytes, text: str) -> bool:
+    def _chinese_text_success(cls, data: bytes, text: str, fitness: float) -> bool:
+        """长中文文本(>24 字符)无 flag 判定: CJK 占比高 + 字级二元组适应度达标。
+        覆盖 base64/unicode 解码出的长中文句——英文 ngram 信号对中文无效,
+        这是中文 n-gram 模型的核心价值。"""
+        if len(data) <= 24:
+            return False
+        if not all(c.isprintable() or c in " \t\n\r" for c in text):
+            return False
+        if cls._chinese_ratio(data) < 0.5:
+            return False
+        if re.search(r"[a-zA-Z]{3,}", text):
+            return False   # 排除英文词混入(英文明文走英文路径)
+        return fitness >= 10.0   # 命中率 >= 40% 视为正常中文
+
+    def _short_cjk_success(self, data: bytes, text: str) -> bool:
         """短中文强证据: 2~24 字符, 可严格 UTF-8 解码, 全字符可打印, CJK 占比>=0.4,
         且不含英文单词。覆盖 unicode-escape/html-entity/quoted-printable/latin1
         等确定性解码产出的无 flag 短中文(如 "你好"、"今天天气不错")。
@@ -348,8 +395,16 @@ class ScoringEngine:
         cjk = sum("\u4e00" <= ch <= "\u9fff" for ch in strict_text)
         if cjk / n < 0.4:
             return False
+        # 字符多样性: 重复单字(如 犇犇犇...)不是真实中文——乱码防穿透
+        cjk_chars = {ch for ch in strict_text if "\u4e00" <= ch <= "\u9fff"}
+        if len(cjk_chars) < 2:
+            return False
         # 排除英文词混入(英文明文走 word-break 分支, 中文分支只管纯中文)
         if re.search(r"[a-zA-Z]{3,}", strict_text):
+            return False
+        # 样本足够(>=4 字)时用字级二元组适应度验证: 拦截随机生僻字乱码
+        # (多样但无正常字对组合, 如 犄犅犆犇...); 超短词(你好/早安)直接放行
+        if n >= 4 and self._chinese_ngram_fitness(strict_text) < 8.0:
             return False
         return True
 
@@ -460,7 +515,12 @@ class ScoringEngine:
             # - 短文本(<50B)直接判 SUCCESS: 短乱码碰巧含 flag{ 的概率
             #   低于百万分之一, 且 url/hex 等确定性解码的提示语多为短文本;
             # - 长文本要求 base 达标, 否则降级, 避免长乱码假结果短路管道。
-            if len(data) < 50 or base >= FLAG_MIN_BASE:
+            # 短文本(<50B)需全可打印: xor-crib 已知明文前缀攻击会故意用 flag
+            # 前缀凑出含控制字符的假解(如 nssctf{3yu\t:@s@f\r...), 直接放行
+            # 会被利用——真实确定性解码产物(hex/url/ascii)均为可打印文本
+            if (len(data) < 50 and all(
+                c.isprintable() or c in " \t\n\r" for c in text
+            )) or base >= FLAG_MIN_BASE:
                 # 保底 70: SUCCESS 语义应与 SUCCESS_THRESHOLD 一致,
                 # 避免"判定成功但分数低于阈值"的观感矛盾
                 score = max(SUCCESS_THRESHOLD, 60.0 + base * (40.0 / 60.0))
@@ -478,6 +538,12 @@ class ScoringEngine:
         # 长文本词密度兜底: 长英文句(>24 字符)ngram 表缺失时统计信号失效,
         # 词命中率高即可认可(base64 换行/长密文解码等场景)
         if self._word_density_success(data, text):
+            score = max(SUCCESS_THRESHOLD, base * (100.0 / 60.0))
+            return ScoreResult(min(score, 100.0), Verdict.SUCCESS, False, "", detail)
+        # 中文 n-gram 模型: 长中文句(>24 字符)无 flag 时按词频适应度判定
+        cjk_fitness = self._chinese_ngram_fitness(text)
+        if self._chinese_text_success(data, text, cjk_fitness):
+            detail["cjk_ngram"] = round(cjk_fitness, 1)
             score = max(SUCCESS_THRESHOLD, base * (100.0 / 60.0))
             return ScoreResult(min(score, 100.0), Verdict.SUCCESS, False, "", detail)
         # 短中文强证据兜底: unicode-escape/html-entity/qp/latin1 解码产出的中文短文本

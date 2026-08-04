@@ -116,6 +116,27 @@ def binary_enc(data: bytes) -> str:
     return "".join(f"{b:08b}" for b in data)
 
 
+def _rot47_enc(text: str) -> str:
+    return "".join(
+        chr(33 + (ord(c) - 33 + 47) % 94) if 33 <= ord(c) <= 126 else c
+        for c in text
+    )
+
+
+def _simple_rf_enc(text: str, rails: int) -> str:
+    """分栏式栅栏(非 zigzag): 按位置取模分栏后拼接。"""
+    segs = [[] for _ in range(rails)]
+    for i, ch in enumerate(text):
+        segs[i % rails].append(ch)
+    return "".join("".join(s) for s in segs)
+
+
+def _variant_caesar_enc(text: str, start: int = 5) -> bytes:
+    """变异凯撒: 每个字符 ASCII 加递增位移(起点 start, 每次 +1)。
+    返回 bytes 使 add() 走 latin1 存储——str 会含 U+0080 以上字符被 UTF-8 编码变形。"""
+    return bytes((ord(c) + start + i) % 256 for i, c in enumerate(text))
+
+
 # ------------------------------------------------------------ 题目构造
 
 def make_items() -> list[dict]:
@@ -212,6 +233,127 @@ def make_items() -> list[dict]:
     add("combo/caesar-b32", base64.b32encode(caesar_enc(FILLER + "base32 caesar " + f, 5).encode()).decode(), f, "base32 解后是凯撒")
     f = "flag{x0r_1nside_b64}"
     add("combo/xor-b64", b64(xor_enc(f"layered xor {f}".encode(), b"\x55")), f, "base64 解后是单字节XOR")
+
+    # ================= 第 29 轮扩充: 参数化批量 (34 -> 100 题) =================
+    import gzip
+    import html
+    import hashlib
+    import quopri
+    import zlib
+
+    # A. 编码变体 (12)
+    _f = "flag{b64_c4s3_m1x}"
+    add("codec/base64", b64(f"mixed case b64 {_f}".encode()), _f, "base64 混合大小写")
+    _f = "flag{h3x_0x_pr3f1x}"
+    add("codec/hex", "0x" + f"prefix hex {_f}".encode().hex(), _f, "hex 0x 前缀")
+    _f = "flag{h3x_4ll_c4ps}"
+    add("codec/hex", f"upper hex {_f}".encode().hex().upper(), _f, "hex 全大写")
+    _f = "flag{h3x_sp4c3_s3p}"
+    add("codec/hex", " ".join(f"hex space {_f}".encode().hex()[i:i+2] for i in range(0, len(f"hex space {_f}".encode().hex()), 2)), _f, "hex 空格分隔")
+    _f = "flag{b32_r0t4t10n}"
+    add("codec/base32", base64.b32encode(f"b32 rotation {_f}".encode()).decode(), _f, "base32 变体")
+    _f = "flag{b85_4n0th3r}"
+    add("codec/base85", base64.b85encode(f"b85 another {_f}".encode()).decode(), _f, "base85 变体")
+    _f = "flag{u_r1_3nc0d3d}"
+    add("codec/url", quote_from_bytes(f"url once more {_f}".encode()), _f, "URL 变体")
+    _f = "flag{m0rs3_slash}"
+    add("codec/morse", morse_enc(f"morse slash {_f}").replace("   ", " / "), _f, "摩斯斜杠分隔单词")
+    _f = "flag{b1n4ry_l0ng}"
+    add("codec/binary", binary_enc(f"a longer binary payload {_f}".encode()), _f, "二进制长文本")
+    _f = "flag{a5c11_d3c1m4l}"
+    add("codec/ascii", " ".join(str(b) for b in f"decimal ascii {_f}".encode()), _f, "十进制 ASCII 序列")
+    _f = "flag{a5c11_0ct4l}"
+    add("codec/ascii", " ".join(f"{b:03o}" for b in f"octal ascii {_f}".encode()), _f, "八进制 ASCII 序列")
+
+    # B. 古典密码变体 (20)
+    for _shift in (1, 7, 13, 21, 24):
+        _f = f"flag{{caesar_shift_{_shift:02d}}}"
+        add("classical/caesar", caesar_enc(FILLER + f"shift {_shift} gives " + _f, _shift), _f, f"凯撒位移 {_shift}")
+    _f = "flag{rot13_4g41n}"
+    add("classical/caesar", caesar_enc(FILLER + "rot13 again " + _f, 13), _f, "ROT13")
+    _f = "flag{atbash_2nd_3cho}"
+    add("classical/atbash", atbash_enc(FILLER + "atbash echo " + _f), _f, "Atbash 变体")
+    for _a, _b in ((3, 7), (9, 2), (11, 5)):
+        _f = f"flag{{affine_{_a}_{_b}}}"
+        add("classical/affine", affine_enc(FILLER + f"affine {_a} {_b} " + _f, _a, _b), _f, f"仿射 a={_a},b={_b}")
+    for _k in ("moon", "cipher", "china"):
+        _f = f"flag{{vig_key_{_k}}}"
+        add("classical/vigenere", vigenere_enc((FILLER * 2) + f"vigenere key {_k} " + _f, _k), _f, f"维吉尼亚 key='{_k}'")
+    for _r in (2, 4, 6):
+        _f = f"flag{{railfence_{_r}_rails}}"
+        add("classical/railfence", railfence_enc(f"rail fence {_r} " + _f, _r), _f, f"栅栏 {_r} 栏")
+    _f = "flag{kbd_l3ft_sh1ft}"
+    add("classical/keyboard", kbd_enc("keyboard left shift " + _f, -1), _f, "键盘左移一格")
+    _f = "flag{r0t47_4n0th3r}"
+    add("classical/rot47", _rot47_enc(f"rot47 variant {_f}"), _f, "ROT47 变体")
+    _f = "flag{s1mpl3_r4ilf3nc3}"
+    add("classical/railfence-simple", _simple_rf_enc("simple rail fence " + _f, 3), _f, "分栏式栅栏 3 栏")
+    _f = "flag{v4r1ant_ca3sar}"
+    add("classical/variant-caesar", _variant_caesar_enc(_f, 5), _f, "变异凯撒(flag 开头, 真实题形态)")
+
+    # C. XOR 变体 (8)
+    for _k in (b"\x11", b"\x4a", b"\x7f", b"\x09", b"\x6e"):
+        _f = f"flag{{xor_byte_{_k.hex()}}}"
+        add("xor/single", xor_enc(f"single byte {_k.hex()} {_f}".encode(), _k), _f, f"单字节 XOR {_k.hex()}")
+    for _k in (b"xyz", b"k3y!"):
+        _f = f"flag{{xor_repeat_{_k.decode()}}}"
+        add("xor/multi", xor_enc((FILLER + f"repeat key {_k.decode()} " + _f).encode(), _k), _f, f"重复密钥 {_k.decode()!r}")
+
+    # D. 高级编码 (6)
+    _f = "flag{un1c0de_3sc4p3}"
+    add("codec/unicode", "".join("\\u%04x" % ord(c) for c in f"unicode escape {_f}"), _f, "Unicode 转义")
+    _f = "flag{h7ml_3nt1t13s}"
+    add("codec/html", html.escape(f"html entities {_f}"), _f, "HTML 实体")
+    _f = "flag{q_p_3nc0d1ng}"
+    add("codec/qp", quopri.encodestring(f"quoted printable {_f}".encode()).decode(), _f, "Quoted-Printable")
+    _f = "flag{z11b_c0mpr3ss}"
+    add("codec/zlib", zlib.compress(f"zlib compressed {_f}".encode()), _f, "Zlib 压缩")
+    _f = "flag{gz1p_p4ck3d}"
+    add("codec/gzip", gzip.compress(f"gzip packed {_f}".encode()), _f, "Gzip 压缩")
+
+    # E. 哈希变体 (6)
+    for _w in ("admin1", "hello", "flag{crypto}", "secret"):
+        add("hash/md5", hashlib.md5(_w.encode()).hexdigest(), _w, f"MD5 字典爆破({_w})")
+    add("hash/sha1", hashlib.sha1(b"letmein").hexdigest(), "letmein", "SHA1 字典爆破")
+    add("hash/sha256", hashlib.sha256(b"welcome").hexdigest(), "welcome", "SHA256 字典爆破")
+
+    # F. 组合链变体 (14)
+    _f = "flag{h3x_1n_b64}"
+    add("combo/hex-b64", b64(f"hex inside {_f}".encode().hex().encode()), _f, "base64 解后是 hex")
+    _f = "flag{c4esar_1n_h3x}"
+    add("combo/caesar-hex", caesar_enc(FILLER + "caesar hex " + _f, 11).encode().hex(), _f, "hex 解后是凯撒")
+    _f = "flag{4tf4sh_1n_b64}"
+    add("combo/atbash-b64", b64(atbash_enc(FILLER + "atbash b64 " + _f).encode()), _f, "base64 解后是 Atbash")
+    _f = "flag{4ff1ne_1n_b64}"
+    add("combo/affine-b64", b64(affine_enc(FILLER + "affine b64 " + _f, 3, 7).encode()), _f, "base64 解后是仿射")
+    _f = "flag{r0t47_1n_b64}"
+    add("combo/rot47-b64", b64(_rot47_enc(f"rot47 b64 {_f}").encode()), _f, "base64 解后是 ROT47")
+    _f = "flag{v1g_1n_h3x}"
+    add("combo/vigenere-hex", vigenere_enc((FILLER * 2) + "vig hex " + _f, "key").encode().hex(), _f, "hex 解后是维吉尼亚")
+    _f = "flag{x0r_1n_b32}"
+    add("combo/xor-b32", base64.b32encode(xor_enc(f"xor b32 {_f}".encode(), b"\x4b")).decode(), _f, "base32 解后是单字节XOR")
+    _f = "flag{r41lf3nc3_1n_b64}"
+    add("combo/railfence-b64", b64(railfence_enc("rail fence b64 " + _f, 4).encode()), _f, "base64 解后是栅栏")
+    _f = "flag{m0rs3_1n_h3x}"
+    add("combo/morse-hex", morse_enc(f"morse hex {_f}").encode().hex(), _f, "hex 解后是摩斯")
+    _f = "flag{d0ubl3_b64_1n_b64}"
+    add("combo/b64-b64", b64(b64(f"b64 in b64 {_f}".encode(), 2).encode()), _f, "三层 base64 变体")
+    _f = "flag{h3x_b64_c4esar}"
+    add("combo/caesar-b64-hex", f"caesar b64 hex {_f}".encode().hex().encode() and b64(caesar_enc("triple layer " + _f, 6).encode().hex().encode()), _f, "hex→base64→凯撒 三层")
+    _f = "flag{x0r_h3x_b64}"
+    add("combo/xor-hex-b64", b64(xor_enc(f"xor hex b64 {_f}".encode(), b"\x2f").hex().encode()), _f, "base64→hex→XOR 三层")
+    _f = "flag{a5c11_b64_1n}"
+    add("combo/ascii-b64", b64(" ".join(str(b) for b in f"ascii b64 {_f}".encode()).encode()), _f, "base64 解后是 ASCII 序列")
+    _f = "flag{url_b64_c4esar}"
+    add("combo/caesar-b64-url", b64(quote_from_bytes(caesar_enc("url b64 caesar " + _f, 8).encode()).encode()), _f, "base64→URL→凯撒 三层")
+
+    # G. 补齐至 100 题
+    _f = "flag{b85_f1ll3r_up}"
+    add("codec/base85", base64.b85encode(f"b85 filler {_f}".encode()).decode(), _f, "base85 补充")
+    _f = "flag{atbash_f1ll3r}"
+    add("classical/atbash", atbash_enc(FILLER + "atbash filler " + _f), _f, "Atbash 补充")
+    _f = "flag{m0rs3_h3x_c0mb0}"
+    add("combo/morse-hex-2", f"morse hex combo {_f}".encode().hex(), _f, "hex 解后是摩斯(直接 hex 文本)")
 
     return items
 

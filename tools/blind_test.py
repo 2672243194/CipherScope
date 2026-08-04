@@ -168,6 +168,13 @@ cases.append(("base64 76字符换行", _b64_wrapped, "The quick brown fox"))
 cases.append(("培根A/B流", b"AABABABABAAAAAAAABBA", "flag"))
 cases.append(("hex 0x+空格混合", b"0x66 0x6c 0x61 0x67", "flag"))
 
+# 30. 中文 n-gram 模型 (路线图项, 第二十九轮)
+_b64_ch = _b64_mod.b64encode("密码学是研究信息加密解密的技术包括对称加密和非对称加密".encode()).decode()
+cases.append(("base64长中文", _b64_ch.encode(), "密码学是研究信息"))
+_cjk_text = "恭喜你成功破解这道密码学题目你的答案是正确的"
+_uni_ch = "".join("\\u%04x" % ord(c) for c in _cjk_text).encode()
+cases.append(("unicode长中文", _uni_ch, "恭喜你成功破解"))
+
 print(f"{'用例':<24} {'结果':<7} 说明")
 print("-" * 70)
 for name, ct, expected in cases:

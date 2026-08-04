@@ -128,7 +128,17 @@ class Base16Plugin:
         c = _compact(ct)
         c = re.sub(r"0[xX]", "", c)
         if len(c) in (32, 40, 56, 64, 96, 128):
-            return  # 疑似哈希, 让给 hash 插件
+            # 疑似哈希长度: 仅当解码产物几乎全部可打印才是真 hex 编码
+            # (如 28 字节文本的 56 位 hex), 否则是哈希乱码让给 hash 插件
+            try:
+                pt = bytes.fromhex(c)
+            except ValueError:
+                return
+            printable = sum(32 <= b < 127 or b in (9, 10, 13) for b in pt)
+            if printable / max(len(pt), 1) < 0.9:
+                return
+            yield Candidate(plaintext=pt, method="hex-decode", chain=["hex"])
+            return
         try:
             pt = bytes.fromhex(c)
         except ValueError:

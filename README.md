@@ -95,18 +95,18 @@ cipherscope/
 
 ## 评测
 
-34 道自构造语料（覆盖全部插件正反向路径与多层组合），**综合通过率 100%**：
+100 道自构造语料（覆盖全部插件正反向路径与多层组合），**综合通过率 100%**：
 
 ```
-CipherScope Eval — 34/34 (100%)
+CipherScope Eval — 100/100 (100%)
 ┌───────────┬───────────┬──────┬───────┬──────┐
 │ Platform  │ Category  │ Pass │ Total │ Rate │
 ├───────────┼───────────┼──────┼───────┼──────┤
-│ synthetic │ classical │   10 │    10 │ 100% │
-│ synthetic │ codec     │   12 │    12 │ 100% │
-│ synthetic │ combo     │    6 │     6 │ 100% │
-│ synthetic │ hash      │    2 │     2 │ 100% │
-│ synthetic │ xor       │    4 │     4 │ 100% │
+│ synthetic │ classical │   31 │    31 │ 100% │
+│ synthetic │ codec     │   29 │    29 │ 100% │
+│ synthetic │ combo     │   21 │    21 │ 100% │
+│ synthetic │ hash      │    8 │     8 │ 100% │
+│ synthetic │ xor       │   11 │    11 │ 100% │
 └───────────┴───────────┴──────┴───────┴──────┘
 ```
 
@@ -117,10 +117,10 @@ CipherScope Eval — 34/34 (100%)
 - [x] v0.1 识别/评分/调度/管道 + 编码/古典/XOR 插件 + CLI
 - [x] v0.2 RSA 攻击 + 哈希识别
 - [x] v0.3 Web 可视化版 + 打包脚本
-- [ ] 完整 quadgram 表生成与调参
-- [ ] 中文 n-gram 评分模型
+- [x] 完整 quadgram 表生成与调参（84k 组, 892 万样本, 随包分发）
+- [x] 中文 n-gram 评分模型（20 万字级二元组, 长中文句自动认可）
 - [x] 通过率徽章 CI（GitHub Actions 自动评测 + 动态徽章）
-- [ ] 真题语料扩充至 100 题
+- [x] 真题语料扩充至 100 题（综合通过率 100%）
 
 ## License
 
