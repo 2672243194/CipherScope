@@ -1,0 +1,43 @@
+name: eval-badge
+
+# 每次推送到 main 自动跑评测, 把结果发布到 gh-pages 分支供 shields.io 动态徽章读取
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: badge
+  cancel-in-progress: true
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 安装依赖
+        run: |
+          pip install -q -e . pyyaml
+
+      - name: 运行评测并生成徽章数据
+        run: python tools/eval_badge.py
+
+      - name: 部署徽章数据到 gh-pages
+        run: |
+          git config user.name "cipherscope-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add badge/
+          if git diff --cached --quiet; then
+            echo "徽章数据无变化, 跳过部署"
+            exit 0
+          fi
+          git commit -m "badge: update eval results"
+          git push --force origin HEAD:gh-pages

@@ -4,7 +4,8 @@
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)]()
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)]()
-[![Eval Pass 34/34](https://img.shields.io/badge/eval-34%2F34%20(100%25)-brightgreen.svg)]()
+[![Eval](https://img.shields.io/endpoint?url=https%3A%2F%2F2672243194.github.io%2FCipherScope%2Fbadge%2Feval-results.json&style=flat-square)]()
+[![Blind Tests](https://img.shields.io/endpoint?url=https%3A%2F%2F2672243194.github.io%2FCipherScope%2Fbadge%2Fblind-results.json&style=flat-square)]()
 
 ## 它解决什么问题
 
