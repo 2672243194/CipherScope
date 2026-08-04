@@ -16,3 +16,7 @@ dist/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# 生成 quadgram 表的临时语料(不下发)
+tools/_corpus/
+tools/_gutenberg.zip
