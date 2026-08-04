@@ -8,7 +8,7 @@
 [![Tests](https://img.shields.io/github/actions/workflow/status/2672243194/CipherScope/tests.yml?label=tests)]()
 [![Eval](https://img.shields.io/endpoint?url=https%3A%2F%2F2672243194.github.io%2FCipherScope%2Fbadge%2Feval-results.json&style=flat-square)]()
 [![Blind Tests](https://img.shields.io/endpoint?url=https%3A%2F%2F2672243194.github.io%2FCipherScope%2Fbadge%2Fblind-results.json&style=flat-square)]()
-[![PyPI](https://img.shields.io/pypi/v/cipherscope)]()
+[![PyPI](https://img.shields.io/pypi/v/cipherscope?cacheSeconds=3600)]()
 
 ## 它解决什么问题
 
