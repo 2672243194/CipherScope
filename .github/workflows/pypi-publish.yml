@@ -11,6 +11,8 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # 未配置 PYPI_API_TOKEN 时跳过发布(避免 tag 推送触发红色失败)
+    if: secrets.PYPI_API_TOKEN != ''
     steps:
       - uses: actions/checkout@v4
 
