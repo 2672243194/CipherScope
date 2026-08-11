@@ -32,8 +32,8 @@ jobs:
 
       - name: 部署徽章数据到 gh-pages
         run: |
-          git config user.name "cipherscope-bot"
-          git config user.email "bot@users.noreply.github.com"
+          git config user.name "2672243194"
+          git config user.email "2672243194@qq.com"
           git add badge/
           if git diff --cached --quiet; then
             echo "徽章数据无变化, 跳过部署"
